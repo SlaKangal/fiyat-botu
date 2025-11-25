@@ -5,12 +5,12 @@ from email.mime.text import MIMEText
 import os
 import sys
 
-# --- YENİ HEDEF: TRENDYOL ---
-# Rastgele bir kulaklık seçtim test için
+# --- AYARLAR ---
 URL = "https://www.trendyol.com/sony/wh-ch520-kablosuz-kulak-ustu-kulaklik-bej-p-686963999"
-HEDEF_FIYAT = 2500 # Şu anki fiyatın biraz altı veya üstü
+# Hedef fiyatı bilerek çok yüksek yapıyorum ki kesinlikle mail atsın
+HEDEF_FIYAT = 999999 
 
-# Şifreleri Çek
+# Şifreleri GitHub Secrets'tan alıyoruz
 try:
     GONDEREN_MAIL = os.environ["MAIL_ADRESI"]
     GONDEREN_SIFRE = os.environ["MAIL_SIFRESI"]
@@ -24,8 +24,8 @@ headers = {
 }
 
 def mail_gonder(fiyat, link):
-    konu = f"ALARM: {fiyat} TL"
-    mesaj = f"FIYAT DUSTU!\nYeni Fiyat: {fiyat} TL\nLink: {link}"
+    konu = f"TEST ALARMI: {fiyat} TL"
+    mesaj = f"Sistem Calisiyor!\nSu anki Fiyat: {fiyat} TL\nLink: {link}"
     
     try:
         server = smtplib.SMTP('smtp.gmail.com', 587, local_hostname='localhost')
@@ -46,38 +46,30 @@ def mail_gonder(fiyat, link):
 def fiyat_kontrol_et():
     print("1. Siteye baglaniliyor...", flush=True)
     try:
-        # Trendyol için timeout 20 saniye
         response = requests.get(URL, headers=headers, timeout=20)
         
         if response.status_code == 200:
-            print("2. Baglanti basarili! Veri okunuyor...", flush=True)
+            print("2. Baglanti basarili! Fiyat okunuyor...", flush=True)
             soup = BeautifulSoup(response.content, "html.parser")
             
-            # Trendyol'da fiyat genelde 'prc-dsc' class'ındadır
+            # Trendyol fiyat alanı
             fiyat_container = soup.find("span", {"class": "prc-dsc"})
-            
-            # Alternatif class (bazen değişiyor)
             if not fiyat_container:
                  fiyat_container = soup.find("div", {"class": "product-price-container"})
 
             if fiyat_container:
                 fiyat_text = fiyat_container.get_text().replace("TL", "").replace(".", "").replace(",", ".")
-                # Bazen '1.200' gelir bazen '1200'. Temizleyelim:
                 guncel_fiyat = float(fiyat_text.strip())
-                
                 print(f"💰 Guncel Fiyat: {guncel_fiyat} TL", flush=True)
                 
-                # Test amaçlı: Fiyat ne olursa olsun mail atması için mantığı ters çevirdim
-                # Normalde küçüktür (<) olmalı. Test için her türlü çalışsın diye print ekledim.
-                if guncel_fiyat < HEDEF_FIYAT:
-                    print("!!! ALARM TETIKLENDI !!!", flush=True)
-                    mail_gonder(guncel_fiyat, URL)
-                else:
-                    print("Fiyat henüz düşmedi ama sistem çalışıyor.", flush=True)
+                # --- ZORLA MAIL GONDERME KISMI ---
+                print("🧪 TEST MODU: Fiyata bakmaksizin mail atiliyor...", flush=True)
+                mail_gonder(guncel_fiyat, URL)
+                
             else:
-                print("⚠️ Fiyat etiketi bulunamadi (Site tasarımı değişmiş olabilir).", flush=True)
-                # HTML'in başlığını yazdıralım ki bağlandığımızı kanıtlayalım
-                print("Sayfa Başlığı:", soup.title.string, flush=True)
+                print("⚠️ Fiyat etiketi bulunamadi. Site yapisi degismis olabilir.", flush=True)
+                # Fiyat bulamasa bile '0 TL' diye mail at ki sistemin çalıştığını görelim
+                mail_gonder(0, URL)
         else:
             print(f"❌ Siteye baglanilamadi. Kod: {response.status_code}", flush=True)
             
