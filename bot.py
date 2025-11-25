@@ -5,10 +5,11 @@ from email.mime.text import MIMEText
 import sys
 
 # --- AYARLAR ---
-# Satırın başında hiç boşluk yok, duvara yapışık:
-URL = "https://www.trendyol.com/apple/iphone-13-128-gb-yildiz-isigi-cep-telefonu-apple-turkiye-garantili-p-150059024"
+# Senin koyduğun iPhone linki veya istediğin herhangi bir link
+URL = "https://www.trendyol.com/apple/iphone-13-128gb-yildiz-isigi-p-150244342"
+HEDEF_FIYAT = 40000 # Fiyat bunun altına düşerse mail atar
 
-# --- SENİN BİLGİLERİN ---
+# --- MAİL BİLGİLERİN ---
 GONDEREN_MAIL = "sla.kangal0@gmail.com"
 GONDEREN_SIFRE = "stezaunuyfnngwrv"
 ALICI_MAIL = "sla.kangal0@gmail.com"
@@ -18,8 +19,8 @@ headers = {
 }
 
 def mail_gonder(fiyat, link):
-    konu = f"TEST ALARMI: {fiyat} TL"
-    mesaj = f"Sistem Calisiyor!\nSu anki Fiyat: {fiyat} TL\nLink: {link}"
+    konu = f"ALARM: {fiyat} TL"
+    mesaj = f"FIYAT DUSTU!\nYeni Fiyat: {fiyat} TL\nLink: {link}"
     
     try:
         server = smtplib.SMTP('smtp.gmail.com', 587, local_hostname='localhost')
@@ -43,24 +44,46 @@ def fiyat_kontrol_et():
         response = requests.get(URL, headers=headers, timeout=20)
         
         if response.status_code == 200:
-            print("2. Baglanti basarili! Fiyat okunuyor...", flush=True)
+            print("2. Baglanti basarili! Fiyat taraniyor...", flush=True)
             soup = BeautifulSoup(response.content, "html.parser")
             
-            fiyat_container = soup.find("span", {"class": "prc-dsc"})
-            if not fiyat_container:
-                 fiyat_container = soup.find("div", {"class": "product-price-container"})
+            # --- ÇOKLU TARAMA SİSTEMİ ---
+            # Trendyol'un kullandığı tüm fiyat kutusu isimlerini sırayla deniyoruz
+            olasi_classlar = [
+                "prc-dsc",                 # Standart indirimli fiyat
+                "product-price-container", # Genel kutu
+                "prc-box-sllng",           # Elektronik ürünlerde sık çıkar
+                "ps-curr",                 # İndirimsiz fiyat
+                "featured-prices"          # Kampanyalı fiyat
+            ]
+            
+            guncel_fiyat = None
+            
+            for class_adi in olasi_classlar:
+                kutu = soup.find("span", {"class": class_adi})
+                if not kutu:
+                    kutu = soup.find("div", {"class": class_adi})
+                
+                if kutu:
+                    try:
+                        # Fiyatı temizle (TL yazısını ve noktaları at)
+                        text = kutu.get_text().replace("TL", "").replace(".", "").replace(",", ".")
+                        guncel_fiyat = float(text.strip())
+                        print(f"🎯 Fiyat '{class_adi}' kutusunda bulundu!", flush=True)
+                        break # Bulduysan döngüden çık
+                    except:
+                        continue # Sayı değilse diğer kutuya bak
 
-            if fiyat_container:
-                fiyat_text = fiyat_container.get_text().replace("TL", "").replace(".", "").replace(",", ".")
-                guncel_fiyat = float(fiyat_text.strip())
+            if guncel_fiyat:
                 print(f"💰 Guncel Fiyat: {guncel_fiyat} TL", flush=True)
                 
-                print("🧪 TEST MODU: Mail atiliyor...", flush=True)
-                mail_gonder(guncel_fiyat, URL)
-                
+                if guncel_fiyat < HEDEF_FIYAT:
+                    print("!!! FIYAT DUSUK - MAIL ATILIYOR !!!", flush=True)
+                    mail_gonder(guncel_fiyat, URL)
+                else:
+                    print("Fiyat henüz hedeflediğin seviyeye düşmedi.", flush=True)
             else:
-                print("⚠️ Fiyat etiketi bulunamadi. Yine de mail testi yapılıyor.", flush=True)
-                mail_gonder(0, URL)
+                print("⚠️ Fiyat etiketi bulunamadi. HTML yapısı çok farklı olabilir.", flush=True)
         else:
             print(f"❌ Siteye baglanilamadi. Kod: {response.status_code}", flush=True)
             
@@ -69,4 +92,3 @@ def fiyat_kontrol_et():
 
 if __name__ == "__main__":
     fiyat_kontrol_et()
-
