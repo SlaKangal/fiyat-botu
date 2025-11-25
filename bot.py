@@ -5,11 +5,12 @@ from email.mime.text import MIMEText
 import sys
 
 # --- AYARLAR ---
- URL = "https://www.trendyol.com/apple/iphone-13-128gb-yildiz-isigi-p-150244342"
+# Satırın başında hiç boşluk yok, duvara yapışık:
+URL = "https://www.trendyol.com/apple/iphone-13-128gb-yildiz-isigi-p-150244342"
 
-# --- SENİN BİLGİLERİNİ ELLE GİRDİM ---
+# --- SENİN BİLGİLERİN ---
 GONDEREN_MAIL = "sla.kangal0@gmail.com"
-GONDEREN_SIFRE = "stezaunuyfnngwrv"  # Senin verdiğin 16 haneli kod
+GONDEREN_SIFRE = "stezaunuyfnngwrv"
 ALICI_MAIL = "sla.kangal0@gmail.com"
 
 headers = {
@@ -21,7 +22,6 @@ def mail_gonder(fiyat, link):
     mesaj = f"Sistem Calisiyor!\nSu anki Fiyat: {fiyat} TL\nLink: {link}"
     
     try:
-        # local_hostname hatayı önler
         server = smtplib.SMTP('smtp.gmail.com', 587, local_hostname='localhost')
         server.starttls()
         server.login(GONDEREN_MAIL, GONDEREN_SIFRE)
@@ -46,7 +46,6 @@ def fiyat_kontrol_et():
             print("2. Baglanti basarili! Fiyat okunuyor...", flush=True)
             soup = BeautifulSoup(response.content, "html.parser")
             
-            # Trendyol fiyat alanı
             fiyat_container = soup.find("span", {"class": "prc-dsc"})
             if not fiyat_container:
                  fiyat_container = soup.find("div", {"class": "product-price-container"})
@@ -56,7 +55,6 @@ def fiyat_kontrol_et():
                 guncel_fiyat = float(fiyat_text.strip())
                 print(f"💰 Guncel Fiyat: {guncel_fiyat} TL", flush=True)
                 
-                # --- ZORLA MAIL TESTİ ---
                 print("🧪 TEST MODU: Mail atiliyor...", flush=True)
                 mail_gonder(guncel_fiyat, URL)
                 
@@ -71,4 +69,3 @@ def fiyat_kontrol_et():
 
 if __name__ == "__main__":
     fiyat_kontrol_et()
-
