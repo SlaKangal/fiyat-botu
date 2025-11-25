@@ -25,4 +25,4 @@ jobs:
         env:
           MAIL_ADRESI: ${{ secrets.MAIL_ADRESI }}
           MAIL_SIFRESI: ${{ secrets.MAIL_SIFRESI }}
-        run: python bot.py
+       run: python -u bot.py
