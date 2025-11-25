@@ -2,22 +2,15 @@ import requests
 from bs4 import BeautifulSoup
 import smtplib
 from email.mime.text import MIMEText
-import os
 import sys
 
 # --- AYARLAR ---
 URL = "https://www.trendyol.com/sony/wh-ch520-kablosuz-kulak-ustu-kulaklik-bej-p-686963999"
-# Hedef fiyatı bilerek çok yüksek yapıyorum ki kesinlikle mail atsın
-HEDEF_FIYAT = 999999 
 
-# Şifreleri GitHub Secrets'tan alıyoruz
-try:
-    GONDEREN_MAIL = os.environ["MAIL_ADRESI"]
-    GONDEREN_SIFRE = os.environ["MAIL_SIFRESI"]
-    ALICI_MAIL = os.environ["MAIL_ADRESI"]
-except KeyError:
-    print("❌ HATA: Sifreler okunamadi!", flush=True)
-    sys.exit(1)
+# --- SENİN BİLGİLERİNİ ELLE GİRDİM ---
+GONDEREN_MAIL = "sla.kangal0@gmail.com"
+GONDEREN_SIFRE = "stezaunuyfnngwrv"  # Senin verdiğin 16 haneli kod
+ALICI_MAIL = "sla.kangal0@gmail.com"
 
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
@@ -28,6 +21,7 @@ def mail_gonder(fiyat, link):
     mesaj = f"Sistem Calisiyor!\nSu anki Fiyat: {fiyat} TL\nLink: {link}"
     
     try:
+        # local_hostname hatayı önler
         server = smtplib.SMTP('smtp.gmail.com', 587, local_hostname='localhost')
         server.starttls()
         server.login(GONDEREN_MAIL, GONDEREN_SIFRE)
@@ -62,13 +56,12 @@ def fiyat_kontrol_et():
                 guncel_fiyat = float(fiyat_text.strip())
                 print(f"💰 Guncel Fiyat: {guncel_fiyat} TL", flush=True)
                 
-                # --- ZORLA MAIL GONDERME KISMI ---
-                print("🧪 TEST MODU: Fiyata bakmaksizin mail atiliyor...", flush=True)
+                # --- ZORLA MAIL TESTİ ---
+                print("🧪 TEST MODU: Mail atiliyor...", flush=True)
                 mail_gonder(guncel_fiyat, URL)
                 
             else:
-                print("⚠️ Fiyat etiketi bulunamadi. Site yapisi degismis olabilir.", flush=True)
-                # Fiyat bulamasa bile '0 TL' diye mail at ki sistemin çalıştığını görelim
+                print("⚠️ Fiyat etiketi bulunamadi. Yine de mail testi yapılıyor.", flush=True)
                 mail_gonder(0, URL)
         else:
             print(f"❌ Siteye baglanilamadi. Kod: {response.status_code}", flush=True)
