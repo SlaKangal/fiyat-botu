@@ -2,8 +2,8 @@ name: Fiyat Takip Botu
 
 on:
   schedule:
-    - cron: '0 * * * *'  # Her saat başı çalışır (Örn: 13:00, 14:00...)
-  workflow_dispatch:      # Elle tetiklemek için buton ekler
+    - cron: '0 * * * *'   # Her saat başı çalışır
+  workflow_dispatch:      # Elle tetiklemek için buton
 
 jobs:
   build:
@@ -25,4 +25,4 @@ jobs:
         env:
           MAIL_ADRESI: ${{ secrets.MAIL_ADRESI }}
           MAIL_SIFRESI: ${{ secrets.MAIL_SIFRESI }}
-       run: python -u bot.py
+        run: python -u bot.py
