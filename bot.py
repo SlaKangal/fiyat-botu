@@ -5,7 +5,7 @@ from email.mime.text import MIMEText
 import sys
 
 # --- AYARLAR ---
-URL = "https://www.trendyol.com/sony/wh-ch520-kablosuz-kulak-ustu-kulaklik-bej-p-686963999"
+ URL = "https://www.trendyol.com/apple/iphone-13-128gb-yildiz-isigi-p-150244342"
 
 # --- SENİN BİLGİLERİNİ ELLE GİRDİM ---
 GONDEREN_MAIL = "sla.kangal0@gmail.com"
@@ -71,3 +71,4 @@ def fiyat_kontrol_et():
 
 if __name__ == "__main__":
     fiyat_kontrol_et()
+
