@@ -5,7 +5,7 @@ from email.mime.text import MIMEText
 import sys
 
 # --- AYARLAR ---
-URL = "https://www.trendyol.com/apple/iphone-13-128gb-yildiz-isigi-p-150244342"
+URL = "https://www.trendyol.com/apple/iphone-13-128-gb-yildiz-isigi-cep-telefonu-apple-turkiye-garantili-p-150059024"
 HEDEF_FIYAT = 40000 
 
 # --- BİLGİLERİN ---
@@ -84,3 +84,4 @@ def fiyat_kontrol_et():
 
 if __name__ == "__main__":
     fiyat_kontrol_et()
+
