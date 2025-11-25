@@ -1,21 +1,22 @@
 import requests
-from bs4 import BeautifulSoup
+import re # Düzenli ifadeler (Metin içinde avlanmak için)
 import smtplib
 from email.mime.text import MIMEText
 import sys
 
 # --- AYARLAR ---
-# Senin koyduğun iPhone linki veya istediğin herhangi bir link
-URL = "https://www.trendyol.com/apple/iphone-13-128-gb-yildiz-isigi-cep-telefonu-apple-turkiye-garantili-p-150059024"
-HEDEF_FIYAT = 40000 # Fiyat bunun altına düşerse mail atar
+URL = "https://www.trendyol.com/apple/iphone-13-128gb-yildiz-isigi-p-150244342"
+HEDEF_FIYAT = 40000 
 
-# --- MAİL BİLGİLERİN ---
+# --- BİLGİLERİN ---
 GONDEREN_MAIL = "sla.kangal0@gmail.com"
 GONDEREN_SIFRE = "stezaunuyfnngwrv"
 ALICI_MAIL = "sla.kangal0@gmail.com"
 
 headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
+    # Google Bot taklidi yapıyoruz ki Trendyol bizi engellemesin
+    "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
 }
 
 def mail_gonder(fiyat, link):
@@ -44,46 +45,37 @@ def fiyat_kontrol_et():
         response = requests.get(URL, headers=headers, timeout=20)
         
         if response.status_code == 200:
-            print("2. Baglanti basarili! Fiyat taraniyor...", flush=True)
-            soup = BeautifulSoup(response.content, "html.parser")
+            print("2. Baglanti basarili! Kodlar taraniyor...", flush=True)
+            html_icerigi = response.text
             
-            # --- ÇOKLU TARAMA SİSTEMİ ---
-            # Trendyol'un kullandığı tüm fiyat kutusu isimlerini sırayla deniyoruz
-            olasi_classlar = [
-                "prc-dsc",                 # Standart indirimli fiyat
-                "product-price-container", # Genel kutu
-                "prc-box-sllng",           # Elektronik ürünlerde sık çıkar
-                "ps-curr",                 # İndirimsiz fiyat
-                "featured-prices"          # Kampanyalı fiyat
-            ]
+            # YÖNTEM 1: "sellingPrice" değerini ara (En garantisi)
+            # Trendyol'un arka plan verisinde fiyat genelde şöyle durur: "sellingPrice":35000
+            match = re.search(r'"sellingPrice":\s*(\d+(\.\d+)?)', html_icerigi)
             
-            guncel_fiyat = None
-            
-            for class_adi in olasi_classlar:
-                kutu = soup.find("span", {"class": class_adi})
-                if not kutu:
-                    kutu = soup.find("div", {"class": class_adi})
-                
-                if kutu:
-                    try:
-                        # Fiyatı temizle (TL yazısını ve noktaları at)
-                        text = kutu.get_text().replace("TL", "").replace(".", "").replace(",", ".")
-                        guncel_fiyat = float(text.strip())
-                        print(f"🎯 Fiyat '{class_adi}' kutusunda bulundu!", flush=True)
-                        break # Bulduysan döngüden çık
-                    except:
-                        continue # Sayı değilse diğer kutuya bak
+            if not match:
+                # YÖNTEM 2: Alternatif yazım şekli "sellingPrice":{"value":35000
+                match = re.search(r'"sellingPrice":\{"value":\s*(\d+(\.\d+)?)', html_icerigi)
 
-            if guncel_fiyat:
-                print(f"💰 Guncel Fiyat: {guncel_fiyat} TL", flush=True)
+            if match:
+                # Bulunan fiyatı al
+                fiyat_text = match.group(1)
+                guncel_fiyat = float(fiyat_text)
                 
-                if guncel_fiyat < HEDEF_FIYAT:
-                    print("!!! FIYAT DUSUK - MAIL ATILIYOR !!!", flush=True)
-                    mail_gonder(guncel_fiyat, URL)
-                else:
-                    print("Fiyat henüz hedeflediğin seviyeye düşmedi.", flush=True)
+                print(f"💰 Guncel Fiyat (Scriptten Bulundu): {guncel_fiyat} TL", flush=True)
+                
+                # Test için mail atalım
+                print("🧪 TEST MODU: Fiyat bulundu, mail atiliyor...", flush=True)
+                mail_gonder(guncel_fiyat, URL)
+                
             else:
-                print("⚠️ Fiyat etiketi bulunamadi. HTML yapısı çok farklı olabilir.", flush=True)
+                print("⚠️ Fiyat kodların içinde de bulunamadi.", flush=True)
+                # Sayfa başlığını yazdıralım, belki 'Robot Doğrulama' sayfasına düşüyoruzdur
+                baslik_match = re.search(r'<title>(.*?)</title>', html_icerigi)
+                if baslik_match:
+                    print(f"Sayfa Başlığı: {baslik_match.group(1)}", flush=True)
+                else:
+                    print("Sayfa başlığı okunamadı.", flush=True)
+                    
         else:
             print(f"❌ Siteye baglanilamadi. Kod: {response.status_code}", flush=True)
             
@@ -92,4 +84,3 @@ def fiyat_kontrol_et():
 
 if __name__ == "__main__":
     fiyat_kontrol_et()
-
