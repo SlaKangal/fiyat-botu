@@ -88,4 +88,5 @@ def fiyat_kontrol_et():
         print(f"❌ Genel Hata: {e}", flush=True)
 
 if __name__ == "__main__":
-    fiyat_kontrol_et()
+    fiyat_kontrol_et(),
+
