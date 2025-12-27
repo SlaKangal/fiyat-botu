@@ -6,7 +6,7 @@ import sys
 
 # --- AYARLAR ---
 # Takip ettiğin ürün
-URL = "https://www.trendyol.com/apple/iphone-13-128-gb-yildiz-isigi-cep-telefonu-apple-turkiye-garantili-p-150059024"
+URL = "https://www.trendyol.com/apple/iphone-13-128-gb-yildiz-isigi-cep-telefonu-apple-turkiye-garantili-p-15005902"
 
 # BİLDİRİM EŞİĞİ: Fiyat 38.000 TL'nin altına düşerse haber ver
 # (Burayı istediğin gibi değiştir)
@@ -89,4 +89,5 @@ def fiyat_kontrol_et():
 
 if __name__ == "__main__":
     fiyat_kontrol_et(),
+
 
