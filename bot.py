@@ -13,9 +13,9 @@ URL = "https://www.trendyol.com/apple/iphone-13-128-gb-yildiz-isigi-cep-telefonu
 HEDEF_FIYAT = 38000 
 
 # --- MAİL BİLGİLERİN ---
-GONDEREN_MAIL = "sla.kangal0@gmail.com"
+GONDEREN_MAIL = "slagmail.com"
 GONDEREN_SIFRE = "stezaunuyfnngwrv"
-ALICI_MAIL = "sla.kangal0@gmail.com"
+ALICI_MAIL = "sla.kacom"
 
 headers = {
     "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
@@ -89,5 +89,6 @@ def fiyat_kontrol_et():
 
 if __name__ == "__main__":
     fiyat_kontrol_et(),
+
 
 
